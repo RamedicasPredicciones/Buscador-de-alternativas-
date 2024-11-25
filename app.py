@@ -84,7 +84,7 @@ st.markdown(
     f"""
     <a href="{descargar_plantilla()}" download>
         <button style="background-color: #FF5800; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">
-            Descargar plantilla de faltantes
+            Descargar plantilla
         </button>
     </a>
     """,
