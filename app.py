@@ -70,7 +70,7 @@ st.markdown(
         RAMEDICAS S.A.S.
     </h1>
     <h3 style="text-align: center; font-family: Arial, sans-serif; color: #3A86FF;">
-        Buscador de Alternativas por Código de Artículo
+        Buscador de Alternativas por Código de Artículo FOMAG
     </h3>
     <p style="text-align: center; font-family: Arial, sans-serif; color: #6B6B6B;">
         Esta herramienta te permite buscar y consultar los códigos alternativos de productos con las opciones deseadas de manera eficiente y rápida.
@@ -92,7 +92,7 @@ st.markdown(
 )
 
 # Subir archivo de faltantes
-uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur' y 'codart')", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'codart' y 'cur')", type=["xlsx", "csv"])
 
 if uploaded_file:
     # Leer el archivo subido
@@ -109,7 +109,7 @@ if uploaded_file:
 
     # Mostrar las alternativas
     if not alternativas_disponibles_df.empty:
-        st.write("Alternativas disponibles para los productos faltantes:")
+        st.write("Alternativas disponibles para los códigos ingresados:")
         st.dataframe(alternativas_disponibles_df)
 
         # Permitir seleccionar opciones
