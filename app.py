@@ -17,7 +17,7 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
 
     # Verificar si el archivo de faltantes contiene las columnas requeridas
     if not {'cur', 'codart', 'emb'}.issubset(faltantes_df.columns):
-        st.error("El archivo de faltantes debe contener las columnas: 'cur', 'codart' y 'emb'")
+        st.error("El archivo de faltantes debe contener las columnas: 'cur', 'codart' y 'embalaje'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
 
     # Filtrar el inventario solo por los artículos que están en el archivo de faltantes
@@ -93,7 +93,7 @@ st.markdown(
 )
 
 # Subir archivo de faltantes
-uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur', 'codart' y 'emb')", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur', 'codart' y 'embalaje')", type=["xlsx", "csv"])
 
 if uploaded_file:
     # Leer el archivo subido
