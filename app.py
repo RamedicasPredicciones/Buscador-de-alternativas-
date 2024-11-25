@@ -4,7 +4,7 @@ from io import BytesIO
 
 # Función para cargar el inventario desde Google Sheets
 def load_inventory_file():
-    # Enlace al archivo del inventario en Google Sheets
+    # Nuevo enlace al archivo del inventario en Google Sheets
     inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/export?format=xlsx"
     inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja3")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
@@ -12,11 +12,6 @@ def load_inventory_file():
 
 # Función para procesar las alternativas basadas en los productos faltantes
 def procesar_alternativas(faltantes_df, inventario_api_df):
-    # Verificar si la columna 'cur' está presente en el inventario
-    if 'cur' not in inventario_api_df.columns:
-        st.error("El inventario no contiene la columna 'cur'. Verifica el archivo.")
-        return pd.DataFrame()  # Devuelve un DataFrame vacío
-
     # Convertir los nombres de las columnas a minúsculas
     faltantes_df.columns = faltantes_df.columns.str.lower().str.strip()
 
@@ -106,9 +101,6 @@ if uploaded_file:
     # Cargar el inventario
     inventario_api_df = load_inventory_file()
 
-    # Verificar las columnas del inventario
-    st.write("Columnas disponibles en el inventario:", inventario_api_df.columns)
-
     # Procesar alternativas
     alternativas_disponibles_df = procesar_alternativas(faltantes_df, inventario_api_df)
 
@@ -142,3 +134,4 @@ if uploaded_file:
             st.write("No has seleccionado ninguna opción para mostrar.")
     else:
         st.write("No se encontraron alternativas para los códigos ingresados.")
+
