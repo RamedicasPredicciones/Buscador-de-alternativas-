@@ -10,19 +10,19 @@ def load_inventory_file():
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
     return inventario_api_df
 
-# Función para procesar las alternativas basadas en los productos faltantes
+# Función para procesar las alternativas basadas en los productos 
 def procesar_alternativas(faltantes_df, inventario_api_df):
     # Convertir los nombres de las columnas a minúsculas
-    faltantes_df.columns = faltantes_df.columns.str.lower().str.strip()
+    Codart_df.columns = Codart_df.columns.str.lower().str.strip()
 
-    # Verificar si el archivo de faltantes contiene las columnas requeridas
-    if not {'cur', 'codart', 'embalaje'}.issubset(faltantes_df.columns):
-        st.error("El archivo de faltantes debe contener las columnas: 'cur', 'codart' y 'embalaje'")
+    # Verificar si el archivo de Codart contiene las columnas requeridas
+    if not {'cur', 'codart', 'embalaje'}.issubset(Codart_df.columns):
+        st.error("El archivo debe contener las columnas: 'cur', 'codart' y 'embalaje'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
 
-    # Filtrar el inventario solo por los artículos que están en el archivo de faltantes
-    cur_faltantes = faltantes_df['cur'].unique()
-    alternativas_inventario_df = inventario_api_df[inventario_api_df['cur'].isin(cur_faltantes)]
+    # Filtrar el inventario solo por los artículos que están en el archivo de Codart
+    cur_Codart = Codart_df['cur'].unique()
+    alternativas_inventario_df = inventario_api_df[inventario_api_df['cur'].isin(cur_Codart)]
 
     # Verificar si las columnas necesarias existen en el inventario
     columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion', 'emb']
@@ -37,9 +37,9 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     # Seleccionar las columnas requeridas
     alternativas_disponibles_df = alternativas_inventario_df[columnas_necesarias]
 
-    # Combinar los faltantes con las alternativas disponibles
+    # Combinar los Codart con las alternativas disponibles
     alternativas_disponibles_df = pd.merge(
-        faltantes_df[['cur', 'codart', 'embalaje']],
+        Codart_df[['cur', 'codart', 'embalaje']],
         alternativas_disponibles_df,
         on=['cur', 'codart'],
         how='inner'
