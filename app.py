@@ -24,7 +24,7 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     alternativas_inventario_df = inventario_api_df[inventario_api_df['cur'].isin(cur_faltantes)]
 
     # Verificar si las columnas necesarias existen en el inventario
-    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion', 'bodega']
+    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion', 'bodega', 'unidadespresentacionlote']
     for columna in columnas_necesarias:
         if columna not in alternativas_inventario_df.columns:
             st.error(f"La columna '{columna}' no se encuentra en el inventario. Verifica el archivo de origen.")
@@ -33,8 +33,9 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     # Convertir la columna 'opcion' a enteros
     alternativas_inventario_df['opcion'] = alternativas_inventario_df['opcion'].fillna(0).astype(int)
 
-    # Seleccionar las columnas requeridas
-    alternativas_disponibles_df = alternativas_inventario_df[columnas_necesarias]
+    # Seleccionar las columnas requeridas, incluyendo 'unidadespresentacionlote'
+    columnas_seleccionadas = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion', 'bodega', 'unidadespresentacionlote']
+    alternativas_disponibles_df = alternativas_inventario_df[columnas_seleccionadas]
 
     # Combinar los faltantes con las alternativas disponibles
     alternativas_disponibles_df = pd.merge(
@@ -138,12 +139,10 @@ if uploaded_file:
             # Generar archivo Excel para descargar
             excel_file = generar_excel(alternativas_filtradas)
             st.download_button(
-                label="Descargar archivo Excel con las opciones y bodegas seleccionadas",
+                label="Descargar archivo Excel con las opciones seleccionadas",
                 data=excel_file,
                 file_name="alternativas_filtradas.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
-            st.write("No has seleccionado ninguna opción o bodega para mostrar.")
-    else:
-        st.write("No se encontraron alternativas para los códigos ingresados.")
+            st.write("No se ha seleccionado ninguna opción o bodega.")
