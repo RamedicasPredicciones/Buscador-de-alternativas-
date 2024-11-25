@@ -5,7 +5,7 @@ from io import BytesIO
 # Función para cargar el inventario desde Google Sheets
 def load_inventory_file():
     # Enlace al archivo del inventario en Google Sheets
-    inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/edit?usp=sharing&ouid=109532697276677589725&rtpof=true&sd=true"
+    inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/export?format=xlsx"
     inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja1")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
     return inventario_api_df
@@ -16,8 +16,8 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     faltantes_df.columns = faltantes_df.columns.str.lower().str.strip()
 
     # Verificar si el archivo de faltantes contiene las columnas requeridas
-    if not {'cur', 'codart'}.issubset(faltantes_df.columns):
-        st.error("El archivo de faltantes debe contener las columnas: 'cur' y 'codart'")
+    if not {'cur', 'codart', 'emb'}.issubset(faltantes_df.columns):
+        st.error("El archivo de faltantes debe contener las columnas: 'cur', 'codart' y 'emb'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
 
     # Filtrar el inventario solo por los artículos que están en el archivo de faltantes
@@ -34,15 +34,16 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     # Convertir la columna 'opcion' a enteros
     alternativas_inventario_df['opcion'] = alternativas_inventario_df['opcion'].fillna(0).astype(int)
 
-    # Seleccionar las columnas requeridas
-    alternativas_disponibles_df = alternativas_inventario_df[columnas_necesarias]
+    # Crear la columna 'codart_alternativa' como el código de artículo encontrado
+    alternativas_inventario_df['codart_alternativa'] = alternativas_inventario_df['codart']
 
-    # Agregar la columna 'codart_alternativa' con el código alternativo encontrado
-    alternativas_disponibles_df['codart_alternativa'] = alternativas_disponibles_df['codart']
+    # Seleccionar las columnas requeridas incluyendo 'emb'
+    columnas_finales = columnas_necesarias + ['codart_alternativa']
+    alternativas_disponibles_df = alternativas_inventario_df[columnas_finales]
 
-    # Combinar los faltantes con las alternativas disponibles
+    # Combinar los faltantes con las alternativas disponibles, incluyendo la columna 'emb'
     alternativas_disponibles_df = pd.merge(
-        faltantes_df[['cur', 'codart']],
+        faltantes_df[['cur', 'codart', 'emb']],  # Aseguramos que se incluya 'emb' en la mezcla
         alternativas_disponibles_df,
         on=['cur', 'codart'],
         how='inner'
@@ -92,7 +93,7 @@ st.markdown(
 )
 
 # Subir archivo de faltantes
-uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur' y 'codart')", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur', 'codart' y 'emb')", type=["xlsx", "csv"])
 
 if uploaded_file:
     # Leer el archivo subido
