@@ -4,7 +4,6 @@ from io import BytesIO
 
 # Función para cargar el inventario desde Google Sheets
 def load_inventory_file():
-    # Nuevo enlace al archivo del inventario en Google Sheets
     inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/export?format=xlsx"
     inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja3")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
@@ -19,6 +18,10 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     if not {'cur', 'codart'}.issubset(faltantes_df.columns):
         st.error("El archivo de faltantes debe contener las columnas: 'cur' y 'codart'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
+
+    # Eliminar duplicados en los datos de faltantes y el inventario antes de realizar la fusión
+    faltantes_df = faltantes_df.drop_duplicates(subset=['cur', 'codart'])
+    inventario_api_df = inventario_api_df.drop_duplicates(subset=['cur', 'codart'])
 
     # Filtrar el inventario solo por los artículos que están en el archivo de faltantes
     cur_faltantes = faltantes_df['cur'].unique()
@@ -44,6 +47,9 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
         on=['cur', 'codart'],
         how='inner'
     )
+
+    # Eliminar duplicados después de la fusión
+    alternativas_disponibles_df = alternativas_disponibles_df.drop_duplicates()
 
     return alternativas_disponibles_df
 
@@ -134,4 +140,3 @@ if uploaded_file:
             st.write("No has seleccionado ninguna opción para mostrar.")
     else:
         st.write("No se encontraron alternativas para los códigos ingresados.")
-
