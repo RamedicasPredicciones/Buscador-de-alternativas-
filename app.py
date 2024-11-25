@@ -67,7 +67,7 @@ st.markdown(
         RAMEDICAS S.A.S.
     </h1>
     <h3 style="text-align: center; font-family: Arial, sans-serif; color: #3A86FF;">
-        Buscador de Alternativas por Código de Artículo
+        Buscador de Alternativas por Código de Artículo FOMAG
     </h3>
     <p style="text-align: center; font-family: Arial, sans-serif; color: #6B6B6B;">
         Esta herramienta te permite buscar y consultar los códigos alternativos de productos con las opciones deseadas de manera eficiente y rápida.
