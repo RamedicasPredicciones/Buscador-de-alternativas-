@@ -4,9 +4,9 @@ from io import BytesIO
 
 # Función para cargar el inventario desde Google Sheets
 def load_inventory_file():
-    # Enlace al archivo del inventario en Google Sheets
-    inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/edit?usp=sharing&ouid=109532697276677589725&rtpof=true&sd=true"
-    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja3")
+    # Nuevo enlace al archivo del inventario en Google Sheets
+    inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/export?format=xlsx"
+    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja1")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
     return inventario_api_df
 
@@ -16,22 +16,16 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     faltantes_df.columns = faltantes_df.columns.str.lower().str.strip()
 
     # Verificar si el archivo de faltantes contiene las columnas requeridas
-    required_columns = ['cur', 'codart']
-    missing_columns = [col for col in required_columns if col not in faltantes_df.columns]
-    if missing_columns:
-        st.error(f"El archivo cargado falta las siguientes columnas: {', '.join(missing_columns)}")
+    if not {'cur', 'codart'}.issubset(faltantes_df.columns):
+        st.error("El archivo de faltantes debe contener las columnas: 'cur' y 'codart'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
-
-    # Verificar los tipos de datos en las columnas 'cur' y 'codart'
-    faltantes_df['cur'] = faltantes_df['cur'].astype(str)
-    faltantes_df['codart'] = faltantes_df['codart'].astype(str)
 
     # Filtrar el inventario solo por los artículos que están en el archivo de faltantes
     cur_faltantes = faltantes_df['cur'].unique()
     alternativas_inventario_df = inventario_api_df[inventario_api_df['cur'].isin(cur_faltantes)]
 
     # Verificar si las columnas necesarias existen en el inventario
-    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion', 'embalaje']
+    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion']
     for columna in columnas_necesarias:
         if columna not in alternativas_inventario_df.columns:
             st.error(f"La columna '{columna}' no se encuentra en el inventario. Verifica el archivo de origen.")
@@ -42,9 +36,6 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
 
     # Seleccionar las columnas requeridas
     alternativas_disponibles_df = alternativas_inventario_df[columnas_necesarias]
-
-    # Crear una nueva columna 'codart_alternativa' que se define como alternativa
-    alternativas_disponibles_df['codart_alternativa'] = alternativas_disponibles_df['codart']
 
     # Combinar los faltantes con las alternativas disponibles
     alternativas_disponibles_df = pd.merge(
@@ -102,48 +93,44 @@ uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (c
 
 if uploaded_file:
     # Leer el archivo subido
-    try:
-        if uploaded_file.name.endswith('xlsx'):
-            faltantes_df = pd.read_excel(uploaded_file)
-        else:
-            faltantes_df = pd.read_csv(uploaded_file)
-        
-        # Cargar el inventario
-        inventario_api_df = load_inventory_file()
+    if uploaded_file.name.endswith('xlsx'):
+        faltantes_df = pd.read_excel(uploaded_file)
+    else:
+        faltantes_df = pd.read_csv(uploaded_file)
 
-        # Procesar alternativas
-        alternativas_disponibles_df = procesar_alternativas(faltantes_df, inventario_api_df)
+    # Cargar el inventario
+    inventario_api_df = load_inventory_file()
 
-        # Mostrar las alternativas
-        if not alternativas_disponibles_df.empty:
-            st.write("Alternativas disponibles para los productos faltantes:")
-            st.dataframe(alternativas_disponibles_df)
+    # Procesar alternativas
+    alternativas_disponibles_df = procesar_alternativas(faltantes_df, inventario_api_df)
 
-            # Permitir seleccionar opciones
-            opciones_disponibles = alternativas_disponibles_df['opcion'].unique()
-            opciones_seleccionadas = st.multiselect(
-                "Selecciona las opciones que deseas ver (puedes elegir varias):",
-                options=sorted(opciones_disponibles)
+    # Mostrar las alternativas
+    if not alternativas_disponibles_df.empty:
+        st.write("Alternativas disponibles para los productos faltantes:")
+        st.dataframe(alternativas_disponibles_df)
+
+        # Permitir seleccionar opciones
+        opciones_disponibles = alternativas_disponibles_df['opcion'].unique()
+        opciones_seleccionadas = st.multiselect(
+            "Selecciona las opciones que deseas ver (puedes elegir varias):",
+            options=sorted(opciones_disponibles)
+        )
+
+        # Filtrar según las opciones seleccionadas
+        if opciones_seleccionadas:
+            alternativas_filtradas = alternativas_disponibles_df[alternativas_disponibles_df['opcion'].isin(opciones_seleccionadas)]
+            st.write(f"Mostrando alternativas para las opciones seleccionadas: {', '.join(map(str, opciones_seleccionadas))}")
+            st.dataframe(alternativas_filtradas)
+
+            # Generar archivo Excel para descargar
+            excel_file = generar_excel(alternativas_filtradas)
+            st.download_button(
+                label="Descargar archivo Excel con las opciones seleccionadas",
+                data=excel_file,
+                file_name="alternativas_filtradas.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-
-            # Filtrar según las opciones seleccionadas
-            if opciones_seleccionadas:
-                alternativas_filtradas = alternativas_disponibles_df[alternativas_disponibles_df['opcion'].isin(opciones_seleccionadas)]
-                st.write(f"Mostrando alternativas para las opciones seleccionadas: {', '.join(map(str, opciones_seleccionadas))}")
-                st.dataframe(alternativas_filtradas)
-
-                # Generar archivo Excel para descargar
-                excel_file = generar_excel(alternativas_filtradas)
-                st.download_button(
-                    label="Descargar archivo Excel con las opciones seleccionadas",
-                    data=excel_file,
-                    file_name="alternativas_filtradas.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            else:
-                st.write("No has seleccionado ninguna opción para mostrar.")
         else:
-            st.write("No se encontraron alternativas para los códigos ingresados.")
-    except Exception as e:
-        st.error(f"Ocurrió un error al procesar el archivo: {e}")
-
+            st.write("No has seleccionado ninguna opción para mostrar.")
+    else:
+        st.write("No se encontraron alternativas para los códigos ingresados.")
