@@ -6,7 +6,7 @@ from io import BytesIO
 def load_inventory_file():
     # Enlace al archivo del inventario en Google Sheets
     inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/edit?usp=sharing&ouid=109532697276677589725&rtpof=true&sd=true"
-    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja3")
+    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja1")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
     return inventario_api_df
 
@@ -25,7 +25,7 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     alternativas_inventario_df = inventario_api_df[inventario_api_df['cur'].isin(cur_faltantes)]
 
     # Verificar si las columnas necesarias existen en el inventario
-    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion']
+    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion', 'emb']
     for columna in columnas_necesarias:
         if columna not in alternativas_inventario_df.columns:
             st.error(f"La columna '{columna}' no se encuentra en el inventario. Verifica el archivo de origen.")
@@ -36,6 +36,9 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
 
     # Seleccionar las columnas requeridas
     alternativas_disponibles_df = alternativas_inventario_df[columnas_necesarias]
+
+    # Agregar la columna 'codart_alternativa' con el código alternativo encontrado
+    alternativas_disponibles_df['codart_alternativa'] = alternativas_disponibles_df['codart']
 
     # Combinar los faltantes con las alternativas disponibles
     alternativas_disponibles_df = pd.merge(
@@ -134,5 +137,3 @@ if uploaded_file:
             st.write("No has seleccionado ninguna opción para mostrar.")
     else:
         st.write("No se encontraron alternativas para los códigos ingresados.")
-
-
