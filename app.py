@@ -4,7 +4,6 @@ from io import BytesIO
 
 # Función para cargar el inventario desde Google Sheets
 def load_inventory_file():
-    # Enlace al archivo del inventario en Google Sheets
     inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/export?format=xlsx"
     inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja3")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
@@ -19,6 +18,9 @@ def procesar_alternativas(Codart_df, inventario_api_df):
     if not {'cur', 'codart', 'embalaje'}.issubset(Codart_df.columns):
         st.error("El archivo debe contener las columnas: 'codart', 'cur' y 'embalaje'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
+
+    # Eliminar duplicados en Codart_df basándonos en las columnas relevantes
+    Codart_df = Codart_df.drop_duplicates(subset=['cur', 'codart', 'embalaje'])
 
     # Filtrar el inventario solo por los artículos que están en el archivo de Codart
     cur_Codart = Codart_df['cur'].unique()
@@ -37,13 +39,13 @@ def procesar_alternativas(Codart_df, inventario_api_df):
     # Seleccionar las columnas requeridas
     alternativas_disponibles_df = alternativas_inventario_df[columnas_necesarias]
 
-    # Combinar los Codart con las alternativas disponibles
+    # Combinar los Codart con las alternativas disponibles sin duplicar registros
     alternativas_disponibles_df = pd.merge(
         Codart_df[['cur', 'codart', 'embalaje']],
         alternativas_disponibles_df,
         on=['cur', 'codart'],
         how='inner'
-    )
+    ).drop_duplicates(subset=['cur', 'codart', 'embalaje'])
 
     return alternativas_disponibles_df
 
