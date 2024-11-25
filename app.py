@@ -6,7 +6,7 @@ from io import BytesIO
 def load_inventory_file():
     # Enlace al archivo del inventario en Google Sheets
     inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/edit?usp=sharing&ouid=109532697276677589725&rtpof=true&sd=true"
-    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja1")
+    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja3")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
     return inventario_api_df
 
