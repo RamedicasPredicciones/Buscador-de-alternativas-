@@ -1,15 +1,3 @@
-import streamlit as st
-import pandas as pd
-from io import BytesIO
-
-# Función para cargar el inventario desde Google Sheets
-def load_inventory_file():
-    # Enlace al archivo del inventario en Google Sheets
-    inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/export?format=xlsx"
-    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja3")
-    inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
-    return inventario_api_df
-
 # Función para procesar las alternativas basadas en los productos 
 def procesar_alternativas(Codart_df, inventario_api_df):
     # Convertir los nombres de las columnas a minúsculas
@@ -47,66 +35,25 @@ def procesar_alternativas(Codart_df, inventario_api_df):
 
     return alternativas_disponibles_df
 
-# Función para generar un archivo Excel
-def generar_excel(df):
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Alternativas')
-    output.seek(0)
-    return output
-
-# Función para descargar la plantilla
-def descargar_plantilla():
-    plantilla_url = "https://docs.google.com/spreadsheets/d/1DVcHwLstuNmNowDr_5ts3RoRfC_Cs-sI/export?format=xlsx"
-    return plantilla_url
-
-# Interfaz de Streamlit
-st.markdown(
-    """
-    <h1 style="text-align: center; color: #FF5800; font-family: Arial, sans-serif;">
-        RAMEDICAS S.A.S.
-    </h1>
-    <h3 style="text-align: center; font-family: Arial, sans-serif; color: #3A86FF;">
-        Buscador de Alternativas por Código de Artículo
-    </h3>
-    <p style="text-align: center; font-family: Arial, sans-serif; color: #6B6B6B;">
-        Esta herramienta te permite buscar y consultar los códigos alternativos de productos con las opciones deseadas de manera eficiente y rápida.
-    </p>
-    """,
-    unsafe_allow_html=True
-)
-
-# Botón para descargar la plantilla
-st.markdown(
-    f"""
-    <a href="{descargar_plantilla()}" download>
-        <button style="background-color: #FF5800; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">
-            Descargar plantilla de faltantes
-        </button>
-    </a>
-    """,
-    unsafe_allow_html=True
-)
-
-# Subir archivo de faltantes
-uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'codart', 'cur' y 'embalaje')", type=["xlsx", "csv"])
+# Subir archivo de Codart
+uploaded_file = st.file_uploader("Sube un archivo con los productos (contiene 'codart', 'cur' y 'embalaje')", type=["xlsx", "csv"])
 
 if uploaded_file:
     # Leer el archivo subido
     if uploaded_file.name.endswith('xlsx'):
-        Codart_df  = pd.read_excel(uploaded_file)
+        Codart_df = pd.read_excel(uploaded_file)
     else:
-        Codart_df  = pd.read_csv(uploaded_file)
+        Codart_df = pd.read_csv(uploaded_file)
 
     # Cargar el inventario
     inventario_api_df = load_inventory_file()
 
     # Procesar alternativas
-    alternativas_disponibles_df = procesar_alternativas(faltantes_df, inventario_api_df)
+    alternativas_disponibles_df = procesar_alternativas(Codart_df, inventario_api_df)
 
     # Mostrar las alternativas
     if not alternativas_disponibles_df.empty:
-        st.write("Alternativas disponibles para los productos faltantes:")
+        st.write("Alternativas disponibles para los productos:")
         st.dataframe(alternativas_disponibles_df)
 
         # Permitir seleccionar opciones
@@ -134,3 +81,4 @@ if uploaded_file:
             st.write("No has seleccionado ninguna opción para mostrar.")
     else:
         st.write("No se encontraron alternativas para los códigos ingresados.")
+
