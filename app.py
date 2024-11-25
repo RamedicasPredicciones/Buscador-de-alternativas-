@@ -5,8 +5,8 @@ from io import BytesIO
 # Función para cargar el inventario desde Google Sheets
 def load_inventory_file():
     # Enlace al archivo del inventario en Google Sheets
-    inventario_url = "https://docs.google.com/spreadsheets/d/19myWtMrvsor2P_XHiifPgn8YKdTWE39O/export?format=xlsx"
-    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja1")
+    inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/edit?usp=sharing&ouid=109532697276677589725&rtpof=true&sd=true"
+    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja3")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
     return inventario_api_df
 
@@ -16,8 +16,8 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     faltantes_df.columns = faltantes_df.columns.str.lower().str.strip()
 
     # Verificar si el archivo de faltantes contiene las columnas requeridas
-    if not {'cur', 'codart', 'embalaje'}.issubset(faltantes_df.columns):
-        st.error("El archivo de faltantes debe contener las columnas: 'cur', 'codart' y 'embalaje'")
+    if not {'cur', 'codart'}.issubset(faltantes_df.columns):
+        st.error("El archivo de faltantes debe contener las columnas: 'cur' y 'codart'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
 
     # Filtrar el inventario solo por los artículos que están en el archivo de faltantes
@@ -37,16 +37,13 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     # Seleccionar las columnas requeridas
     alternativas_disponibles_df = alternativas_inventario_df[columnas_necesarias]
 
-    # Combinar los faltantes con las alternativas disponibles, incluyendo la columna de embalaje
+    # Combinar los faltantes con las alternativas disponibles
     alternativas_disponibles_df = pd.merge(
-        faltantes_df[['cur', 'codart', 'embalaje']],  # Incluyendo 'embalaje'
+        faltantes_df[['cur', 'codart']],
         alternativas_disponibles_df,
         on=['cur', 'codart'],
         how='inner'
     )
-
-    # Agregar la columna de 'alternativa' combinada con el 'codart'
-    alternativas_disponibles_df['codart:alternativa'] = alternativas_disponibles_df['codart'].astype(str) + ':' + alternativas_disponibles_df['opcion'].astype(str)
 
     return alternativas_disponibles_df
 
@@ -92,7 +89,7 @@ st.markdown(
 )
 
 # Subir archivo de faltantes
-uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'codart', 'cur' y 'embalaje')", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur' y 'codart')", type=["xlsx", "csv"])
 
 if uploaded_file:
     # Leer el archivo subido
@@ -119,7 +116,7 @@ if uploaded_file:
             options=sorted(opciones_disponibles)
         )
 
-        # Verificar si se seleccionaron opciones y realizar la búsqueda de alternativas nuevamente
+        # Filtrar según las opciones seleccionadas
         if opciones_seleccionadas:
             alternativas_filtradas = alternativas_disponibles_df[alternativas_disponibles_df['opcion'].isin(opciones_seleccionadas)]
             st.write(f"Mostrando alternativas para las opciones seleccionadas: {', '.join(map(str, opciones_seleccionadas))}")
@@ -134,17 +131,8 @@ if uploaded_file:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
-            # Si no se selecciona ninguna opción, mostrar todas las alternativas por defecto
-            st.write("No se ha seleccionado ninguna opción. Mostrando todas las alternativas disponibles.")
-            st.dataframe(alternativas_disponibles_df)
-            
-            # Generar archivo Excel para descargar
-            excel_file = generar_excel(alternativas_disponibles_df)
-            st.download_button(
-                label="Descargar archivo Excel con todas las alternativas",
-                data=excel_file,
-                file_name="alternativas_disponibles.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+            st.write("No has seleccionado ninguna opción para mostrar.")
     else:
         st.write("No se encontraron alternativas para los códigos ingresados.")
+
+
