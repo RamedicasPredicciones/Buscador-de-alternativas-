@@ -94,9 +94,9 @@ uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (c
 if uploaded_file:
     # Leer el archivo subido
     if uploaded_file.name.endswith('xlsx'):
-        faltantes_df = pd.read_excel(uploaded_file)
+        Codart_df  = pd.read_excel(uploaded_file)
     else:
-        faltantes_df = pd.read_csv(uploaded_file)
+        Codart_df  = pd.read_csv(uploaded_file)
 
     # Cargar el inventario
     inventario_api_df = load_inventory_file()
