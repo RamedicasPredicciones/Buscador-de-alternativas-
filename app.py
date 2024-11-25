@@ -11,7 +11,7 @@ def load_inventory_file():
     return inventario_api_df
 
 # Función para procesar las alternativas basadas en los productos 
-def procesar_alternativas(faltantes_df, inventario_api_df):
+def procesar_alternativas(Codart_df, inventario_api_df):
     # Convertir los nombres de las columnas a minúsculas
     Codart_df.columns = Codart_df.columns.str.lower().str.strip()
 
