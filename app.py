@@ -4,27 +4,25 @@ from io import BytesIO
 
 # Función para cargar el inventario desde Google Sheets
 def load_inventory_file():
-    inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/export?format=xlsx"
-    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja3")
+    # Enlace al archivo del inventario en Google Sheets
+    inventario_url = "https://docs.google.com/spreadsheets/d/19myWtMrvsor2P_XHiifPgn8YKdTWE39O/export?format=xlsx"
+    inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja1")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
     return inventario_api_df
 
-# Función para procesar las alternativas basadas en los productos
+# Función para procesar las alternativas basadas en los productos faltantes
 def procesar_alternativas(Codart_df, inventario_api_df):
     # Convertir los nombres de las columnas a minúsculas
     Codart_df.columns = Codart_df.columns.str.lower().str.strip()
 
-    # Verificar si el archivo de Codart contiene las columnas requeridas
-    if not {'cur', 'codart', 'embalaje'}.issubset(Codart_df.columns):
-        st.error("El archivo debe contener las columnas: 'codart', 'cur' y 'embalaje'")
+    # Verificar si el archivo de faltantes contiene las columnas requeridas
+    if not {'cur', 'codart'}.issubset(Codart_df.columns):
+        st.error("El archivo de faltantes debe contener las columnas: 'cur' y 'codart'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
 
-    # Eliminar duplicados en Codart_df basándonos en las columnas relevantes
-    Codart_df = Codart_df.drop_duplicates(subset=['cur', 'codart', 'embalaje'])
-
-    # Filtrar el inventario solo por los artículos que están en el archivo de Codart
-    cur_Codart = Codart_df['cur'].unique()
-    alternativas_inventario_df = inventario_api_df[inventario_api_df['cur'].isin(cur_Codart)]
+    # Filtrar el inventario solo por los artículos que están en el archivo de faltantes
+    cur_faltantes = Codart_df['cur'].unique()
+    alternativas_inventario_df = inventario_api_df[inventario_api_df['cur'].isin(cur_faltantes)]
 
     # Verificar si las columnas necesarias existen en el inventario
     columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion', 'emb']
@@ -39,13 +37,13 @@ def procesar_alternativas(Codart_df, inventario_api_df):
     # Seleccionar las columnas requeridas
     alternativas_disponibles_df = alternativas_inventario_df[columnas_necesarias]
 
-    # Combinar los Codart con las alternativas disponibles sin duplicar registros
+    # Combinar los faltantes con las alternativas disponibles
     alternativas_disponibles_df = pd.merge(
-        Codart_df[['cur', 'codart', 'embalaje']],
+        Codart_df[['cur', 'codart', 'embalaje']],  # Aseguramos de incluir 'embalaje' de los productos subidos
         alternativas_disponibles_df,
         on=['cur', 'codart'],
         how='inner'
-    ).drop_duplicates(subset=['cur', 'codart', 'embalaje'])
+    )
 
     return alternativas_disponibles_df
 
@@ -59,7 +57,7 @@ def generar_excel(df):
 
 # Función para descargar la plantilla
 def descargar_plantilla():
-    plantilla_url = "https://docs.google.com/spreadsheets/d/1DVcHwLstuNmNowDr_5ts3RoRfC_Cs-sI/export?format=xlsx"
+    plantilla_url = "https://docs.google.com/spreadsheets/d/1CRTYE0hbMlV8FiOeVDgDjGUm7x8E-XA8/export?format=xlsx"
     return plantilla_url
 
 # Interfaz de Streamlit
@@ -90,8 +88,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Subir archivo de Codart
-uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'codart', 'cur' y 'embalaje')", type=["xlsx", "csv"])
+# Subir archivo de faltantes
+uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur', 'codart' y 'embalaje')", type=["xlsx", "csv"])
 
 if uploaded_file:
     # Leer el archivo subido
