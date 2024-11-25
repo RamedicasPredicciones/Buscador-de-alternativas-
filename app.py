@@ -5,7 +5,7 @@ from io import BytesIO
 # Función para cargar el inventario desde Google Sheets
 def load_inventory_file():
     # Enlace al archivo del inventario en Google Sheets
-    inventario_url = "https://docs.google.com/spreadsheets/d/19myWtMrvsor2P_XHiifPgn8YKdTWE39O/export?format=xlsx"
+    inventario_url = "https://docs.google.com/spreadsheets/d/1DVcPPILcqR0sxBZZAOt50lQzoKhoLCEx/export?format=xlsx"
     inventario_api_df = pd.read_excel(inventario_url, sheet_name="Hoja1")
     inventario_api_df.columns = inventario_api_df.columns.str.lower().str.strip()  # Asegurar nombres consistentes
     return inventario_api_df
