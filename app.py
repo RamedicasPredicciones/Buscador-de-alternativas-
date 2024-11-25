@@ -37,7 +37,10 @@ def procesar_alternativas(Codart_df, inventario_api_df):
     # Seleccionar las columnas requeridas
     alternativas_disponibles_df = alternativas_inventario_df[columnas_necesarias]
 
-    # Combinar los faltantes con las alternativas disponibles
+    # Agregar la columna 'codart_alternativa' tomando el 'codart' correspondiente a las alternativas
+    alternativas_disponibles_df['codart_alternativa'] = alternativas_disponibles_df.groupby('cur')['codart'].transform('first')
+
+    # Combinar los productos subidos con las alternativas disponibles
     alternativas_disponibles_df = pd.merge(
         Codart_df[['cur', 'codart', 'embalaje']],  # Aseguramos de incluir 'embalaje' de los productos subidos
         alternativas_disponibles_df,
@@ -89,7 +92,7 @@ st.markdown(
 )
 
 # Subir archivo de faltantes
-uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur', 'codart' y 'embalaje')", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'codart', 'cur' y 'embalaje')", type=["xlsx", "csv"])
 
 if uploaded_file:
     # Leer el archivo subido
@@ -134,3 +137,4 @@ if uploaded_file:
             st.write("No has seleccionado ninguna opción para mostrar.")
     else:
         st.write("No se encontraron alternativas para los códigos ingresados.")
+
