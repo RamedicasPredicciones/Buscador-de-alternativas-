@@ -19,16 +19,12 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
         st.error("El archivo de faltantes debe contener las columnas: 'cur' y 'codart'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
 
-    # Eliminar duplicados en los datos de faltantes y el inventario antes de realizar la fusión
-    faltantes_df = faltantes_df.drop_duplicates(subset=['cur', 'codart'])
-    inventario_api_df = inventario_api_df.drop_duplicates(subset=['cur', 'codart'])
-
     # Filtrar el inventario solo por los artículos que están en el archivo de faltantes
     cur_faltantes = faltantes_df['cur'].unique()
     alternativas_inventario_df = inventario_api_df[inventario_api_df['cur'].isin(cur_faltantes)]
 
     # Verificar si las columnas necesarias existen en el inventario
-    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion']
+    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion', 'bodega']
     for columna in columnas_necesarias:
         if columna not in alternativas_inventario_df.columns:
             st.error(f"La columna '{columna}' no se encuentra en el inventario. Verifica el archivo de origen.")
@@ -73,7 +69,7 @@ st.markdown(
         RAMEDICAS S.A.S.
     </h1>
     <h3 style="text-align: center; font-family: Arial, sans-serif; color: #3A86FF;">
-        Buscador de Alternativas por Código de Artículo FOMAG
+        Buscador de Alternativas por Código de Artículo
     </h3>
     <p style="text-align: center; font-family: Arial, sans-serif; color: #6B6B6B;">
         Esta herramienta te permite buscar y consultar los códigos alternativos de productos con las opciones deseadas de manera eficiente y rápida.
@@ -122,21 +118,32 @@ if uploaded_file:
             options=sorted(opciones_disponibles)
         )
 
-        # Filtrar según las opciones seleccionadas
-        if opciones_seleccionadas:
-            alternativas_filtradas = alternativas_disponibles_df[alternativas_disponibles_df['opcion'].isin(opciones_seleccionadas)]
+        # Permitir seleccionar bodega
+        bodegas_disponibles = alternativas_disponibles_df['bodega'].unique()
+        bodegas_seleccionadas = st.multiselect(
+            "Selecciona las bodegas que deseas ver (puedes elegir varias):",
+            options=sorted(bodegas_disponibles)
+        )
+
+        # Filtrar según las opciones y bodegas seleccionadas
+        if opciones_seleccionadas or bodegas_seleccionadas:
+            alternativas_filtradas = alternativas_disponibles_df[
+                alternativas_disponibles_df['opcion'].isin(opciones_seleccionadas) &
+                alternativas_disponibles_df['bodega'].isin(bodegas_seleccionadas)
+            ]
             st.write(f"Mostrando alternativas para las opciones seleccionadas: {', '.join(map(str, opciones_seleccionadas))}")
+            st.write(f"Mostrando alternativas para las bodegas seleccionadas: {', '.join(map(str, bodegas_seleccionadas))}")
             st.dataframe(alternativas_filtradas)
 
             # Generar archivo Excel para descargar
             excel_file = generar_excel(alternativas_filtradas)
             st.download_button(
-                label="Descargar archivo Excel con las opciones seleccionadas",
+                label="Descargar archivo Excel con las opciones y bodegas seleccionadas",
                 data=excel_file,
                 file_name="alternativas_filtradas.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
         else:
-            st.write("No has seleccionado ninguna opción para mostrar.")
+            st.write("No has seleccionado ninguna opción o bodega para mostrar.")
     else:
         st.write("No se encontraron alternativas para los códigos ingresados.")
