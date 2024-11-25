@@ -17,7 +17,7 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
 
     # Verificar si el archivo de Codart contiene las columnas requeridas
     if not {'cur', 'codart', 'embalaje'}.issubset(Codart_df.columns):
-        st.error("El archivo debe contener las columnas: 'cur', 'codart' y 'embalaje'")
+        st.error("El archivo debe contener las columnas: 'codart', 'cur' y 'embalaje'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
 
     # Filtrar el inventario solo por los artículos que están en el archivo de Codart
