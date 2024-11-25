@@ -16,8 +16,8 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     faltantes_df.columns = faltantes_df.columns.str.lower().str.strip()
 
     # Verificar si el archivo de faltantes contiene las columnas requeridas
-    if not {'cur', 'codart'}.issubset(faltantes_df.columns):
-        st.error("El archivo de faltantes debe contener las columnas: 'cur' y 'codart'")
+    if not {'cur', 'codart', 'embalaje'}.issubset(faltantes_df.columns):
+        st.error("El archivo de faltantes debe contener las columnas: 'cur', 'codart' y 'embalaje'")
         return pd.DataFrame()  # Devuelve un DataFrame vacío si faltan columnas
 
     # Filtrar el inventario solo por los artículos que están en el archivo de faltantes
@@ -25,7 +25,7 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
     alternativas_inventario_df = inventario_api_df[inventario_api_df['cur'].isin(cur_faltantes)]
 
     # Verificar si las columnas necesarias existen en el inventario
-    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion']
+    columnas_necesarias = ['codart', 'cur', 'nomart', 'cum', 'carta', 'opcion', 'emb']
     for columna in columnas_necesarias:
         if columna not in alternativas_inventario_df.columns:
             st.error(f"La columna '{columna}' no se encuentra en el inventario. Verifica el archivo de origen.")
@@ -39,7 +39,7 @@ def procesar_alternativas(faltantes_df, inventario_api_df):
 
     # Combinar los faltantes con las alternativas disponibles
     alternativas_disponibles_df = pd.merge(
-        faltantes_df[['cur', 'codart']],
+        faltantes_df[['cur', 'codart', 'embalaje']],
         alternativas_disponibles_df,
         on=['cur', 'codart'],
         how='inner'
@@ -57,7 +57,7 @@ def generar_excel(df):
 
 # Función para descargar la plantilla
 def descargar_plantilla():
-    plantilla_url = "https://docs.google.com/spreadsheets/d/1CRTYE0hbMlV8FiOeVDgDjGUm7x8E-XA8/export?format=xlsx"
+    plantilla_url = "https://docs.google.com/spreadsheets/d/1CPMBfCiuXq2_l8KY68HgexD-kyNVJ2Ml/export?format=xlsx"
     return plantilla_url
 
 # Interfaz de Streamlit
@@ -89,7 +89,7 @@ st.markdown(
 )
 
 # Subir archivo de faltantes
-uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur' y 'codart')", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur', 'codart' y 'embalaje')", type=["xlsx", "csv"])
 
 if uploaded_file:
     # Leer el archivo subido
