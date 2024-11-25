@@ -89,7 +89,7 @@ st.markdown(
 )
 
 # Subir archivo de faltantes
-uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'cur', 'codart' y 'embalaje')", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Sube un archivo con los productos faltantes (contiene 'codart', 'cur' y 'embalaje')", type=["xlsx", "csv"])
 
 if uploaded_file:
     # Leer el archivo subido
